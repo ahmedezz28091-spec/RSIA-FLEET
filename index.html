@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Red Sea International Airport - Fleet & Inspection Enterprise System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- SheetJS for Excel Parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style> 
+        body { font-family: 'Inter', sans-serif; } 
+        @media print {
+            @page { size: A4 portrait; margin: 10mm; }
+            body * { visibility: hidden; }
+            #printable-report, #printable-report *, .page-break, .page-break * { visibility: visible; }
+            #printable-report { position: absolute; left: 0; top: 0; width: 100%; }
+            .no-print { display: none !important; }
+            .page-break { page-break-after: always; break-after: page; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+    <!-- LOGIN MODAL -->
+    <div id="login-modal" class="fixed inset-0 bg-slate-900 bg-opacity-90 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 border border-slate-100">
+            <div class="text-center mb-6">
+                <!-- Enova by Veolia Exact SVG Logo -->
+                <div class="inline-flex items-center justify-center mb-3">
+                    <svg viewBox="0 0 320 85" class="h-12 w-auto" xmlns="http://www.w3.org/2000/svg">
+                        <g>
+                            <circle cx="42.5" cy="42.5" r="42.5" fill="#ed1c24"/>
+                            <path d="M22 61V35c0-11.3 9.2-20.5 20.5-20.5S63 23.7 63 35v26" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+                            <path d="M35 61V44c0-4.1 3.4-7.5 7.5-7.5s7.5 3.4 7.5 7.5v17" fill="none" stroke="#ed1c24" stroke-width="4" stroke-linecap="round"/>
+                        </g>
+                        <text x="95" y="58" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="44" fill="#2b3990" letter-spacing="-1">ENOVA</text>
+                        <g transform="translate(165, 63)">
+                            <text x="0" y="14" font-family="Inter, Arial, sans-serif" font-style="italic" font-weight="500" font-size="16" fill="#2b3990">by</text>
+                            <g transform="translate(26, 2)">
+                                <circle cx="11" cy="9" r="11" fill="none" stroke="#ed1c24" stroke-width="4"/>
+                                <circle cx="11" cy="9" r="3.5" fill="#ed1c24"/>
+                            </g>
+                            <text x="56" y="14" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="16" fill="#ed1c24" letter-spacing="1">VEOLIA</text>
+                        </g>
+                    </svg>
+                </div>
+                <h2 class="text-lg font-bold text-slate-900">Airport Fleet & Inspection System</h2>
+                <p class="text-xs text-slate-500 mt-1">Red Sea International Airport Asset Management</p>
+            </div>
+            <form onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Username / Employee ID</label>
+                    <input type="text" id="login-user" required placeholder="admin or G1263" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Password</label>
+                    <input type="password" id="login-pass" required placeholder="••••••••" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-sm transition shadow-lg shadow-blue-500/25">Secure Login</button>
+            </form>
+            <div class="mt-6 p-4 bg-slate-50 rounded-2xl text-xs text-slate-500 text-center border border-slate-100">
+                <b>Manager:</b> admin / admin123<br>
+                <b>Inspector:</b> inspector / insp123<br>
+                <b>Driver:</b> Employee ID (Password = Employee ID)
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white shadow-xl sticky top-0 z-40 no-print border-b border-slate-800">
+        <div class="container mx-auto px-4 sm:px-6 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white p-1.5 rounded-xl shadow">
+                    <svg viewBox="0 0 320 85" class="h-7 w-auto" xmlns="http://www.w3.org/2000/svg">
+                        <g>
+                            <circle cx="42.5" cy="42.5" r="42.5" fill="#ed1c24"/>
+                            <path d="M22 61V35c0-11.3 9.2-20.5 20.5-20.5S63 23.7 63 35v26" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+                            <path d="M35 61V44c0-4.1 3.4-7.5 7.5-7.5s7.5 3.4 7.5 7.5v17" fill="none" stroke="#ed1c24" stroke-width="4" stroke-linecap="round"/>
+                        </g>
+                        <text x="95" y="58" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="44" fill="#2b3990" letter-spacing="-1">ENOVA</text>
+                        <g transform="translate(165, 63)">
+                            <text x="0" y="14" font-family="Inter, Arial, sans-serif" font-style="italic" font-weight="500" font-size="16" fill="#2b3990">by</text>
+                            <g transform="translate(26, 2)">
+                                <circle cx="11" cy="9" r="11" fill="none" stroke="#ed1c24" stroke-width="4"/>
+                                <circle cx="11" cy="9" r="3.5" fill="#ed1c24"/>
+                            </g>
+                            <text x="56" y="14" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="16" fill="#ed1c24" letter-spacing="1">VEOLIA</text>
+                        </g>
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xs sm:text-sm font-bold tracking-wide">Red Sea Airport Fleet</h1>
+                    <p id="user-role-display" class="text-[11px] text-emerald-400 font-medium">Logged in</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="gdrive-sync-btn" onclick="handleGoogleDriveAuth()" class="bg-blue-600/20 hover:bg-blue-600 text-blue-300 hover:text-white text-xs px-3 py-2 rounded-xl font-bold transition border border-blue-500/30">☁️ Connect Drive</button>
+                <button onclick="logout()" class="bg-rose-500/10 hover:bg-rose-600 text-rose-400 hover:text-white text-xs px-3 py-2 rounded-xl font-bold transition border border-rose-500/20">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="container mx-auto px-4 sm:px-6 py-6">
+        
+        <!-- Navigation Tabs -->
+        <div class="flex flex-wrap gap-2 mb-6 border-b border-slate-200 pb-4 no-print overflow-x-auto">
+            <button onclick="switchTab('dashboard')" id="btn-dashboard" class="tab-btn bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition shadow-md shadow-blue-500/25 whitespace-nowrap">Dashboard</button>
+            <button onclick="switchTab('vehicles')" id="btn-vehicles" class="tab-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition hover:bg-slate-50 whitespace-nowrap">Fleet</button>
+            <button onclick="switchTab('drivers')" id="btn-drivers" class="tab-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition hover:bg-slate-50 whitespace-nowrap">Drivers</button>
+            <button onclick="switchTab('handover')" id="btn-handover" class="tab-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition hover:bg-slate-50 whitespace-nowrap">🔄 Handover Log</button>
+            <button onclick="switchTab('inspection')" id="btn-inspection" class="tab-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition hover:bg-slate-50 whitespace-nowrap">🔍 Inspection</button>
+            <button onclick="switchTab('users')" id="btn-users" class="tab-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition hover:bg-slate-50 whitespace-nowrap">👥 Users</button>
+            <button onclick="switchTab('reports')" id="btn-reports" class="tab-btn bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider transition hover:bg-slate-50 whitespace-nowrap">📊 Reports</button>
+        </div>
+
+        <!-- 1. DASHBOARD -->
+        <div id="tab-dashboard" class="tab-content">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 border-l-4 border-blue-600">
+                    <p class="text-slate-400 text-[11px] font-bold uppercase tracking-wider">Airport Fleet Assets</p>
+                    <h3 class="text-2xl sm:text-3xl font-black mt-2 text-slate-900" id="dash-total-v">0</h3>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 border-l-4 border-emerald-500">
+                    <p class="text-slate-400 text-[11px] font-bold uppercase tracking-wider">Airport Drivers</p>
+                    <h3 class="text-2xl sm:text-3xl font-black mt-2 text-slate-900" id="dash-total-d">0</h3>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 border-l-4 border-amber-500">
+                    <p class="text-slate-400 text-[11px] font-bold uppercase tracking-wider">Document Alerts</p>
+                    <h3 class="text-2xl sm:text-3xl font-black mt-2 text-amber-600" id="dash-maint-alerts">0</h3>
+                </div>
+                <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 border-l-4 border-rose-500">
+                    <p class="text-slate-400 text-[11px] font-bold uppercase tracking-wider">System Users</p>
+                    <h3 class="text-2xl sm:text-3xl font-black mt-2 text-slate-900" id="dash-total-u">1</h3>
+                </div>
+            </div>
+            <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100">
+                <h3 class="text-sm sm:text-base font-bold text-slate-900 mb-3 flex items-center gap-2"><span>🛡️</span> Compliance & Document Expiry Alerts (30 Days Notice)</h3>
+                <div id="maintenance-alerts-box" class="space-y-3 text-xs sm:text-sm text-slate-600">
+                    <p class="text-emerald-600 font-medium">All airport licenses, Iqamas, and periodic inspections are fully verified.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. FLEET -->
+        <div id="tab-vehicles" class="tab-content hidden">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 rounded-3xl shadow-xl mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h4 class="font-bold text-sm sm:text-base">📥 Import Airport Fleet from Excel (.xlsx)</h4>
+                    <p class="text-xs text-blue-100 mt-1">Upload check list.xlsx (Automatically ignores duplicate Call Sign codes).</p>
+                </div>
+                <input type="file" accept=".xlsx, .xls, .csv" onchange="importVehiclesExcel(event)" class="text-xs bg-white/10 hover:bg-white/20 border border-white/20 p-2.5 rounded-xl cursor-pointer transition w-full sm:w-auto">
+            </div>
+
+            <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div class="flex flex-wrap gap-3 items-center">
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900">Airport Fleet Directory</h3>
+                        <button onclick="deleteSelectedVehicles()" class="bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs px-3.5 py-2 rounded-xl font-bold transition border border-rose-200">🗑️ Delete Selected</button>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                        <input type="text" id="search-vehicle" placeholder="Search Fleet..." onkeyup="filterVehicles()" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64">
+                        <button onclick="openVehicleModal('add')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-5 py-2.5 rounded-xl font-bold shadow-md shadow-blue-500/20 transition whitespace-nowrap">➕ Add Asset</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 uppercase text-[11px] tracking-wider border-b border-slate-100">
+                                <th class="p-3 sm:p-4 w-10"><input type="checkbox" id="select-all-v" onclick="toggleSelectAllVehicles(this)" class="rounded text-blue-600"></th>
+                                <th class="p-3 sm:p-4">Call Sign</th>
+                                <th class="p-3 sm:p-4">Description</th>
+                                <th class="p-3 sm:p-4">Plate No.</th>
+                                <th class="p-3 sm:p-4">Meter</th>
+                                <th class="p-3 sm:p-4">Inspection Expiry</th>
+                                <th class="p-3 sm:p-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="vehicles-table-body" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. DRIVERS -->
+        <div id="tab-drivers" class="tab-content hidden">
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-700 text-white p-6 rounded-3xl shadow-xl mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h4 class="font-bold text-sm sm:text-base">📥 Import Drivers from Excel (.xlsx)</h4>
+                    <p class="text-xs text-emerald-100 mt-1">Upload staff sheet (Sets Employee ID as username & password).</p>
+                </div>
+                <input type="file" accept=".xlsx, .xls, .csv" onchange="importDriversExcel(event)" class="text-xs bg-white/10 hover:bg-white/20 border border-white/20 p-2.5 rounded-xl cursor-pointer transition w-full sm:w-auto">
+            </div>
+
+            <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div class="flex flex-wrap gap-3 items-center">
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900">Airport Drivers Directory</h3>
+                        <button onclick="deleteSelectedDrivers()" class="bg-rose-50 text-rose-600 hover:bg-rose-100 text-xs px-3.5 py-2 rounded-xl font-bold transition border border-rose-200">🗑️ Delete Selected</button>
+                    </div>
+                    <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+                        <input type="text" id="search-driver" placeholder="Search Driver..." onkeyup="filterDrivers()" class="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-64">
+                        <button onclick="openDriverModal('add')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-5 py-2.5 rounded-xl font-bold shadow-md shadow-blue-500/20 transition whitespace-nowrap">➕ Add Driver</button>
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 uppercase text-[11px] tracking-wider border-b border-slate-100">
+                                <th class="p-3 sm:p-4 w-10"><input type="checkbox" id="select-all-d" onclick="toggleSelectAllDrivers(this)" class="rounded text-blue-600"></th>
+                                <th class="p-3 sm:p-4">ID</th>
+                                <th class="p-3 sm:p-4">Name</th>
+                                <th class="p-3 sm:p-4">Position</th>
+                                <th class="p-3 sm:p-4">Iqama No.</th>
+                                <th class="p-3 sm:p-4">Iqama Expiry</th>
+                                <th class="p-3 sm:p-4">License Expiry</th>
+                                <th class="p-3 sm:p-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="drivers-table-body" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. HANDOVER -->
+        <div id="tab-handover" class="tab-content hidden">
+            <div class="max-w-4xl mx-auto space-y-6">
+                <div class="bg-white p-5 sm:p-8 rounded-3xl shadow-sm border border-slate-100">
+                    <div class="border-b border-slate-100 pb-4 mb-6">
+                        <h2 class="text-base sm:text-xl font-bold text-slate-900">🔄 Vehicle Handover & Consumption Portal</h2>
+                        <p class="text-xs text-slate-500 mt-1">Check-Out vs Check-In with Strict Custody & Meter Validation</p>
+                    </div>
+                    <form onsubmit="saveHandover(event)" class="space-y-4 text-xs relative">
+                        <div class="relative">
+                            <label class="block font-bold text-slate-700 uppercase mb-1.5">Smart Search Driver (Name or ID)</label>
+                            <input type="text" id="h-smart-search" placeholder="Type name or ID to search drivers..." oninput="handleSmartDriverSearch(event)" autocomplete="off" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                            <div id="smart-search-results" class="absolute left-0 right-0 bg-white border border-slate-200 rounded-2xl shadow-xl mt-1 max-h-48 overflow-y-auto z-30 hidden divide-y divide-slate-100"></div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                            <div>
+                                <label class="block font-bold text-slate-500 uppercase mb-1">Driver Name</label>
+                                <input type="text" id="h-driver-name" readonly class="w-full bg-white border border-slate-200 rounded-xl p-2.5 font-bold text-slate-800">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-500 uppercase mb-1">Driver ID</label>
+                                <input type="text" id="h-driver-id" readonly class="w-full bg-white border border-slate-200 rounded-xl p-2.5 font-bold text-blue-600">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 uppercase mb-1.5">Select Asset / Vehicle</label>
+                            <select id="h-asset" required onchange="updateAssetCurrentMeter()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm bg-white outline-none font-bold text-blue-900"></select>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-bold text-slate-700 uppercase mb-1.5">Transaction Type</label>
+                                <select id="h-type" onchange="onHandoverTypeChange()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm bg-white outline-none font-bold">
+                                    <option value="Check-Out">Check-Out (Custody Out)</option>
+                                    <option value="Check-In">Check-In (Return In)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 uppercase mb-1.5">System Current Meter</label>
+                                <input type="text" id="h-system-meter" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-3 font-bold text-emerald-600">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block font-bold text-slate-700 uppercase mb-1.5">Meter Reading</label>
+                                <input type="number" id="h-actual-meter" required placeholder="Enter meter" oninput="checkMeterDifference()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-slate-700 uppercase mb-1.5">Date & Time</label>
+                                <input type="datetime-local" id="h-timestamp" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs outline-none">
+                            </div>
+                        </div>
+                        <div id="meter-warning-box" class="hidden bg-rose-50 border border-rose-200 p-4 rounded-2xl text-rose-700 space-y-2">
+                            <p class="font-bold" id="meter-warning-text">⚠️ Warning: Meter reading is invalid!</p>
+                            <div id="reason-container">
+                                <label class="block font-bold uppercase mb-1 text-[11px]">Reason for Difference (Required):</label>
+                                <input type="text" id="h-meter-reason" placeholder="Explain why meter differs..." class="w-full bg-white border border-rose-200 rounded-xl p-2.5 outline-none">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block font-bold text-slate-700 uppercase mb-1.5">Work Location</label>
+                            <select id="h-location" onchange="toggleLocationFields()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm bg-white outline-none">
+                                <option value="Inside Airport">Inside Airport</option>
+                                <option value="Outside Airport">Outside Airport</option>
+                            </select>
+                        </div>
+                        <div id="outside-fields" class="hidden space-y-3 bg-amber-50 p-4 rounded-2xl border border-amber-200">
+                            <div><label class="block font-bold text-amber-900 uppercase mb-1">Destination</label><input type="text" id="h-destination" class="w-full bg-white border border-amber-200 rounded-xl p-2.5 outline-none"></div>
+                            <div><label class="block font-bold text-amber-900 uppercase mb-1">Reason</label><input type="text" id="h-reason" class="w-full bg-white border border-amber-200 rounded-xl p-2.5 outline-none"></div>
+                        </div>
+                        <div class="flex justify-end pt-3">
+                            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg shadow-blue-500/25 transition w-full sm:w-auto">Save Handover Record</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Bottom Handover Logs Table -->
+                <div class="bg-white p-5 sm:p-8 rounded-3xl shadow-sm border border-slate-100">
+                    <h3 class="text-sm sm:text-base font-bold text-slate-900 mb-4">📜 Active & Historical Handover Records</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 uppercase tracking-wider border-b">
+                                    <th class="p-3">Asset</th>
+                                    <th class="p-3">Driver</th>
+                                    <th class="p-3">Type</th>
+                                    <th class="p-3">Meters</th>
+                                    <th class="p-3">Distance</th>
+                                    <th class="p-3">Location</th>
+                                    <th class="p-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bottom-handovers-tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. INSPECTION (Mobile Optimized Checklist) -->
+        <div id="tab-inspection" class="tab-content hidden">
+            <div class="bg-white p-4 sm:p-8 rounded-3xl shadow-sm border border-slate-100 max-w-4xl mx-auto">
+                <div class="border-b border-slate-100 pb-4 mb-5 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                    <div>
+                        <h2 class="text-base sm:text-xl font-bold text-slate-900">Daily Vehicle / Equipment Inspection Checklist</h2>
+                        <p class="text-xs text-slate-500 mt-1">Mobile Camera Capture & Auto Timestamping</p>
+                    </div>
+                    <span id="auto-insp-datetime" class="px-3 py-1 bg-emerald-50 text-emerald-700 font-bold text-xs rounded-xl border border-emerald-100"></span>
+                </div>
+                <form onsubmit="saveInspection(event)" class="space-y-5">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 p-4 sm:p-5 rounded-2xl border border-slate-100">
+                        <div class="relative">
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Smart Search Fleet</label>
+                            <input type="text" id="insp-fleet-search" placeholder="Search by Code or Type..." oninput="handleSmartFleetSearch(event)" autocomplete="off" class="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm outline-none font-semibold text-slate-800 shadow-sm">
+                            <div id="fleet-search-results" class="absolute left-0 right-0 bg-white border border-slate-200 rounded-2xl shadow-xl mt-1 max-h-48 overflow-y-auto z-30 hidden divide-y divide-slate-100"></div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Vehicle / Equipment No.</label>
+                            <input type="text" id="insp-asset" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl p-3 text-sm outline-none font-bold text-blue-600 shadow-sm" required>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Inspected By (Name)</label>
+                            <input type="text" id="insp-name" required placeholder="Full Name" class="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm outline-none font-semibold text-slate-800 shadow-sm">
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 max-w-xs">
+                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Current Mileage / KM</label>
+                        <input type="number" id="insp-meter" required placeholder="Mileage KM" class="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm outline-none font-semibold text-slate-800 shadow-sm">
+                    </div>
+
+                    <!-- Mobile Cards & Table hybrid for Inspection items -->
+                    <div id="inspection-mobile-container" class="space-y-3 sm:hidden"></div>
+                    <div class="hidden sm:block overflow-x-auto rounded-2xl border border-slate-200">
+                        <table class="w-full text-left border-collapse text-sm">
+                            <thead>
+                                <tr class="bg-slate-900 text-white text-[11px] uppercase tracking-wider">
+                                    <th class="p-4">Checks</th>
+                                    <th class="p-4 text-center w-36">Status</th>
+                                    <th class="p-4 w-64">Remarks</th>
+                                    <th class="p-4 w-36">Camera</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100 text-xs" id="inspection-items-tbody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex justify-end pt-2">
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-8 py-3.5 rounded-xl shadow-lg shadow-emerald-500/25 transition w-full sm:w-auto">Save & Authorize Inspection Report</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Bottom Inspection Records Table -->
+            <div class="max-w-4xl mx-auto mt-8">
+                <div class="bg-white p-5 sm:p-8 rounded-3xl shadow-sm border border-slate-100">
+                    <h3 class="text-sm sm:text-base font-bold text-slate-900 mb-4">📜 Authorized Inspection Reports</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse text-xs">
+                            <thead>
+                                <tr class="bg-slate-100 text-slate-600 uppercase tracking-wider border-b">
+                                    <th class="p-3">Asset</th>
+                                    <th class="p-3">Inspector</th>
+                                    <th class="p-3">Mileage</th>
+                                    <th class="p-3">Timestamp</th>
+                                    <th class="p-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bottom-inspections-tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6. USERS -->
+        <div id="tab-users" class="tab-content hidden">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 max-w-3xl mx-auto">
+                <div class="flex justify-between items-center mb-6">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-bold text-slate-900">System Users & Security</h3>
+                        <p class="text-xs text-slate-500 mt-0.5">Password equals Employee ID for all drivers</p>
+                    </div>
+                    <button onclick="openUserModal()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-5 py-2.5 rounded-xl font-bold shadow-md shadow-blue-500/20 transition whitespace-nowrap">➕ Add User</button>
+                </div>
+                <div class="overflow-x-auto rounded-2xl border border-slate-100">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-500 uppercase text-[11px] tracking-wider border-b border-slate-100">
+                                <th class="p-3 sm:p-4">Username (ID)</th>
+                                <th class="p-3 sm:p-4">Credential Policy</th>
+                                <th class="p-3 sm:p-4">Role</th>
+                                <th class="p-3 sm:p-4 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body" class="divide-y divide-slate-100"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- 7. REPORTS -->
+        <div id="tab-reports" class="tab-content hidden">
+            <div class="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-slate-100 mb-6 no-print space-y-6">
+                <div>
+                    <h3 class="text-base sm:text-lg font-bold text-slate-900">Airport Enterprise Report Generator</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Select report criteria, category, and target asset type for clean portrait A4 printing</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                    <div>
+                        <label class="block font-bold text-slate-700 uppercase mb-1.5">Report Category</label>
+                        <select id="rep-category" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm bg-white outline-none">
+                            <option value="inspection">Inspection Report (الفحص)</option>
+                            <option value="handover">Handover Log Report (الاستلام والتسليم)</option>
+                            <option value="both">Both Reports (كلاهما)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 uppercase mb-1.5">Asset Filter Type</label>
+                        <select id="rep-asset-filter" onchange="updateReportTargets()" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm bg-white outline-none font-bold text-blue-900">
+                            <option value="all">All Assets (جميع الأصول)</option>
+                            <option value="vehicles">Vehicles Only (المركبات فقط)</option>
+                            <option value="equipment">Equipment Only (المعدات فقط)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-bold text-slate-700 uppercase mb-1.5">Target Specific Asset / Driver</label>
+                        <select id="rep-target-select" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm bg-white outline-none"></select>
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="generateCustomReport()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-6 py-3.5 rounded-xl shadow-lg shadow-blue-500/25 transition w-full">🖨️ Print Professional A4 Report</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="printable-report">
+                <div id="individual-a4-container"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODALS -->
+    <div id="vehicle-modal" class="fixed inset-0 bg-slate-900 bg-opacity-75 z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target === this) closeModal('vehicle-modal')">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 border border-slate-100">
+            <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-5" id="v-modal-title">Add / Edit Asset</h3>
+            <form onsubmit="saveVehicleForm(event)" class="space-y-4 text-xs">
+                <input type="hidden" id="edit-v-call-orig">
+                <div><label class="block font-bold text-slate-700 uppercase mb-1">Description</label><input type="text" id="modal-v-type" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-bold text-slate-700 uppercase mb-1">Call Sign (Code)</label><input type="text" id="modal-v-call" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none"></div>
+                    <div><label class="block font-bold text-slate-700 uppercase mb-1">Plate No.</label><input type="text" id="modal-v-plate" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-bold text-slate-700 uppercase mb-1">Current Meter</label><input type="number" id="modal-v-meter" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none"></div>
+                    <div><label class="block font-bold text-slate-700 uppercase mb-1">Inspection Expiry</label><input type="date" id="modal-v-insp-exp" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none"></div>
+                </div>
+                <div class="flex justify-end gap-3 pt-3">
+                    <button type="button" onclick="closeModal('vehicle-modal')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold transition">Cancel</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-md shadow-blue-500/20 transition">Save Asset</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="driver-modal" class="fixed inset-0 bg-slate-900 bg-opacity-75 z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target === this) closeModal('driver-modal')">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 border border-slate-100">
+            <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-5" id="d-modal-title">Add / Edit Driver</h3>
+            <form onsubmit="saveDriverForm(event)" class="space-y-4 text-xs">
+                <input type="hidden" id="edit-d-id-orig">
+                <div><label class="block font-bold text-slate-700 uppercase mb-1">Driver ID (Username & Password)</label><input type="text" id="modal-d-id" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none"></div>
+                <div><label class="block font-bold text-slate-700 uppercase mb-1">Full Name</label><input type="text" id="modal-d-name" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-bold text-slate-700 uppercase mb-1">Position</label><input type="text" id="modal-d-pos" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none"></div>
+                    <div><label class="block font-bold text-slate-700 uppercase mb-1">Iqama No.</label><input type="text" id="modal-d-iqama" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div><label class="block font-bold text-slate-700 uppercase mb-1">Iqama Expiry</label><input type="date" id="modal-d-iqama-exp" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none"></div>
+                    <div><label class="block font-bold text-slate-700 uppercase mb-1">License Expiry</label><input type="date" id="modal-d-lic-exp" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none"></div>
+                </div>
+                <div class="flex justify-end gap-3 pt-3">
+                    <button type="button" onclick="closeModal('driver-modal')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold transition">Cancel</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-md shadow-blue-500/20 transition">Save Driver</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="user-modal" class="fixed inset-0 bg-slate-900 bg-opacity-75 z-50 flex items-center justify-center p-4 hidden" onclick="if(event.target === this) closeModal('user-modal')">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 sm:p-8 border border-slate-100">
+            <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-5">Add System User</h3>
+            <form onsubmit="saveUserForm(event)" class="space-y-4 text-xs">
+                <div><label class="block font-bold text-slate-700 uppercase mb-1">Username (Employee ID)</label><input type="text" id="modal-u-name" required class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm outline-none"></div>
+                <div><label class="block font-bold text-slate-700 uppercase mb-1">Role</label>
+                    <select id="modal-u-role" class="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm bg-white outline-none">
+                        <option value="Fleet Manager">Fleet Manager</option>
+                        <option value="Safety Inspector">Safety Inspector</option>
+                        <option value="Driver / Operator">Driver / Operator</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3 pt-3">
+                    <button type="button" onclick="closeModal('user-modal')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl font-bold transition">Cancel</button>
+                    <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-md shadow-blue-500/20 transition">Save User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script Logic -->
+    <script>
+        // Google Drive API Configuration with your verified Client ID
+        const CLIENT_ID = '193644290380-uk1muk09hlo4ahl3un7jprjb4g7bm04a.apps.googleusercontent.com'; 
+        const SCOPES = 'https://www.googleapis.com/auth/drive.file';
+        let tokenClient;
+        let gdriveAccessToken = localStorage.getItem('red_sea_gdrive_token') || null;
+
+        window.onload = function () {
+            try {
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: CLIENT_ID,
+                    scope: SCOPES,
+                    callback: (tokenResponse) => {
+                        if (tokenResponse && tokenResponse.access_token) {
+                            gdriveAccessToken = tokenResponse.access_token;
+                            localStorage.setItem('red_sea_gdrive_token', gdriveAccessToken);
+                            document.getElementById('gdrive-sync-btn').innerText = '☁️ Drive Connected';
+                            document.getElementById('gdrive-sync-btn').classList.remove('bg-blue-600/20', 'text-blue-300');
+                            document.getElementById('gdrive-sync-btn').classList.add('bg-emerald-600', 'text-white');
+                            autoBackupToGoogleDrive();
+                        }
+                    },
+                });
+            } catch(e) { console.log('GIS Init note:', e); }
+
+            if(gdriveAccessToken) {
+                document.getElementById('gdrive-sync-btn').innerText = '☁️ Drive Connected';
+                document.getElementById('gdrive-sync-btn').classList.remove('bg-blue-600/20', 'text-blue-300');
+                document.getElementById('gdrive-sync-btn').classList.add('bg-emerald-600', 'text-white');
+                autoRestoreFromGoogleDrive();
+            }
+        };
+
+        function handleGoogleDriveAuth() {
+            if(tokenClient) {
+                tokenClient.requestAccessToken({prompt: 'consent'});
+            } else {
+                alert('Google Identity Client initializing. Please check your connection.');
+            }
+        }
+
+        async function autoBackupToGoogleDrive() {
+            if (!gdriveAccessToken) return;
+            const backupData = {
+                vehicles: vehicles,
+                drivers: drivers,
+                handovers: handovers,
+                systemUsers: systemUsers,
+                inspectionsData: inspectionsData,
+                updatedAt: new Date().toISOString()
+            };
+
+            try {
+                const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name%3D'red_sea_fleet_backup.json'%20and%20trashed%3Dfalse`, {
+                    headers: { 'Authorization': `Bearer ${gdriveAccessToken}` }
+                });
+                const searchJson = await searchRes.json();
+                let fileId = searchJson.files && searchJson.files.length > 0 ? searchJson.files[0].id : null;
+
+                const fileContent = JSON.stringify(backupData);
+                const metadata = { name: 'red_sea_fleet_backup.json', mimeType: 'application/json' };
+
+                if (fileId) {
+                    await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+                        method: 'PATCH',
+                        headers: { 'Authorization': `Bearer ${gdriveAccessToken}`, 'Content-Type': 'application/json' },
+                        body: fileContent
+                    });
+                } else {
+                    const form = new FormData();
+                    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+                    form.append('file', new Blob([fileContent], { type: 'application/json' }));
+                    await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${gdriveAccessToken}` },
+                        body: form
+                    });
+                }
+            } catch (err) {
+                console.error('Backup error:', err);
+            }
+        }
+
+        async function autoRestoreFromGoogleDrive() {
+            if (!gdriveAccessToken) return;
+            try {
+                const searchRes = await fetch(`https://www.googleapis.com/drive/v3/files?q=name%3D'red_sea_fleet_backup.json'%20and%20trashed%3Dfalse`, {
+                    headers: { 'Authorization': `Bearer ${gdriveAccessToken}` }
+                });
+                const searchJson = await searchRes.json();
+                if (searchJson.files && searchJson.files.length > 0) {
+                    const fileId = searchJson.files[0].id;
+                    const fileRes = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+                        headers: { 'Authorization': `Bearer ${gdriveAccessToken}` }
+                    });
+                    const cloudData = await fileRes.json();
+                    if (cloudData) {
+                        if (cloudData.vehicles) vehicles = cloudData.vehicles;
+                        if (cloudData.drivers) drivers = cloudData.drivers;
+                        if (cloudData.handovers) handovers = cloudData.handovers;
+                        if (cloudData.systemUsers) systemUsers = cloudData.systemUsers;
+                        if (cloudData.inspectionsData) inspectionsData = cloudData.inspectionsData;
+                        
+                        localStorage.setItem('red_sea_master_vehicles', JSON.stringify(vehicles));
+                        localStorage.setItem('red_sea_master_drivers', JSON.stringify(drivers));
+                        localStorage.setItem('red_sea_master_handovers', JSON.stringify(handovers));
+                        localStorage.setItem('red_sea_master_users', JSON.stringify(systemUsers));
+                        localStorage.setItem('red_sea_master_inspections', JSON.stringify(inspectionsData));
+                        initSession();
+                    }
+                }
+            } catch (err) {
+                console.error('Restore error:', err);
+            }
+        }
+
+        const inspectionItemsList = [
+            "Vehicle's overall condition is good",
+            "Hand break is functional",
+            "Headlights, rear lights & side indicators are functional",
+            "Odometer indicators found normal (i.e., any fault signal like oil, engine, abs...etc.)",
+            "Fire extinguisher available and functional",
+            "Fuel Level is adequate, Fluid levels are sufficient? (i.e., coolant, oil, power fluid, windshield) & no leakage found",
+            "Seats belts & seat are in good conditions",
+            "First aid kit available",
+            "Windshield wipers & Horn are functional",
+            "Break is functional & Tires are in good condition",
+            "Mirrors including windshields are in good condition",
+            "Air Conditioning system is functioning properly",
+            "Window panels and doors in good condition",
+            "Are the details of the last servicing shown on the vehicle?",
+            "Has the vehicle got a clearly identifiable identification mark on external of vehicle? (Vehicle Reg or Company Mark?)",
+            "Vehicle's Registration & Airside Pass is valid?",
+            "Any abnormalities, faults/complaints on vehicle inform to FRC and FM",
+            "The vehicle is clean"
+        ];
+
+        const masterExcelFleet = [
+            { sn: 1, type: "Spider Lift – 15–20 meters", call: "ENO-30", plate: "N/A", make: "Snorkel S4726E", meter: 4500, inspExp: "2027-12-31", status: "Roadworthy" },
+            { sn: 2, type: "Scissor Lift – 10–15 meters", call: "ENO-31", plate: "N/A", make: "Snorkel S4740E", meter: 8200, inspExp: "2027-12-31", status: "Roadworthy" },
+            { sn: 5, type: "Sewage Tank Truck 4000 USG", call: "ENO-28", plate: "7792 EGB", make: "Mitsubishi Fuso", meter: 14588, inspExp: "2027-12-31", status: "Roadworthy" },
+            { sn: 6, type: "Compact Wheel Loader (backhoe)", call: "ENO-29", plate: "7885 VAA", make: "Bobcat B730", meter: 16840, inspExp: "2027-12-31", status: "Roadworthy" }
+        ];
+
+        const masterUmlujDrivers = [
+            { driverId: "G1263", name: "MUHAMMAD NOMAN ASGHAR", position: "BUS - DRIVER", iqama: "2523572000", phone: "+966553311", iqamaExp: "2027-12-31", licExp: "2027-05-02" },
+            { driverId: "G1272", name: "SUDAIS AHMAD IBNI AMIN", position: "Driver III - Heavy", iqama: "2592263000", phone: "+966568511", iqamaExp: "2027-12-31", licExp: "2027-05-02" }
+        ];
+
+        let currentUser = JSON.parse(localStorage.getItem('red_sea_current_user')) || null;
+        let vehicles = JSON.parse(localStorage.getItem('red_sea_master_vehicles')) || masterExcelFleet;
+        let drivers = JSON.parse(localStorage.getItem('red_sea_master_drivers')) || masterUmlujDrivers;
+        let handovers = JSON.parse(localStorage.getItem('red_sea_master_handovers')) || [];
+        let systemUsers = JSON.parse(localStorage.getItem('red_sea_master_users')) || [{ username: 'admin', role: 'Fleet Manager', camp: 'Red Sea Airport' }];
+        let inspectionsData = JSON.parse(localStorage.getItem('red_sea_master_inspections')) || {};
+
+        drivers.forEach(d => {
+            if(!systemUsers.some(u => u.username === d.driverId)) {
+                systemUsers.push({ username: d.driverId, role: 'Driver / Operator', camp: 'Red Sea Airport' });
+            }
+        });
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const u = document.getElementById('login-user').value.trim();
+            const p = document.getElementById('login-pass').value.trim();
+            if(u === 'admin' && p === 'admin123') {
+                currentUser = { role: 'manager', name: 'Fleet Manager', driverId: 'admin' };
+                localStorage.setItem('red_sea_current_user', JSON.stringify(currentUser));
+                initSession();
+                return;
+            }
+            if(u === 'inspector' && p === 'insp123') {
+                currentUser = { role: 'inspector', name: 'Safety Inspector', driverId: 'inspector' };
+                localStorage.setItem('red_sea_current_user', JSON.stringify(currentUser));
+                initSession();
+                return;
+            }
+            const driver = drivers.find(d => d.driverId === u);
+            if(driver && p === driver.driverId) {
+                currentUser = { role: 'driver', name: driver.name, driverId: driver.driverId };
+                localStorage.setItem('red_sea_current_user', JSON.stringify(currentUser));
+                initSession();
+                return;
+            }
+            alert('Invalid Credentials! (Manager: admin/admin123, Inspector: inspector/insp123, Driver Password = Employee ID)');
+        }
+
+        function logout() {
+            localStorage.removeItem('red_sea_current_user');
+            currentUser = null;
+            document.getElementById('login-modal').classList.remove('hidden');
+        }
+
+        function initSession() {
+            if(!currentUser) return;
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('user-role-display').innerText = currentUser.role === 'manager' ? 'Fleet Manager' : currentUser.role === 'inspector' ? 'Safety Inspector' : `Driver: ${currentUser.name}`;
+            
+            if(currentUser.role === 'driver') {
+                document.getElementById('h-driver-name').value = currentUser.name;
+                document.getElementById('h-driver-id').value = currentUser.driverId;
+                document.getElementById('h-smart-search').value = `${currentUser.name} (${currentUser.driverId})`;
+                document.getElementById('insp-name').value = currentUser.name;
+            }
+
+            const now = new Date();
+            const localIso = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
+            const timestampInput = document.getElementById('h-timestamp');
+            if(timestampInput) timestampInput.value = localIso;
+
+            const autoInspDate = document.getElementById('auto-insp-datetime');
+            if(autoInspDate) autoInspDate.innerText = "Inspection Date: " + new Date().toLocaleString('en-GB');
+
+            renderVehicles();
+            renderDrivers();
+            renderUsers();
+            renderInspectionFormItems();
+            renderReportSelects();
+            renderBottomHandovers();
+            renderBottomInspections();
+            checkDocumentAlerts();
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => {
+                el.classList.remove('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/20');
+                el.classList.add('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+            });
+            document.getElementById('tab-' + tabId).classList.remove('hidden');
+            const activeBtn = document.getElementById('btn-' + tabId);
+            activeBtn.classList.remove('bg-white', 'text-slate-600', 'border', 'border-slate-200');
+            activeBtn.classList.add('bg-blue-600', 'text-white', 'shadow-md', 'shadow-blue-500/20');
+
+            if(tabId === 'inspection') {
+                renderInspectionFormItems();
+                const autoInspDate = document.getElementById('auto-insp-datetime');
+                if(autoInspDate) autoInspDate.innerText = "Inspection Date: " + new Date().toLocaleString('en-GB');
+                if(currentUser && currentUser.role === 'driver') {
+                    document.getElementById('insp-name').value = currentUser.name;
+                }
+            }
+        }
+
+        function saveData() {
+            localStorage.setItem('red_sea_master_vehicles', JSON.stringify(vehicles));
+            localStorage.setItem('red_sea_master_drivers', JSON.stringify(drivers));
+            localStorage.setItem('red_sea_master_handovers', JSON.stringify(handovers));
+            localStorage.setItem('red_sea_master_users', JSON.stringify(systemUsers));
+            localStorage.setItem('red_sea_master_inspections', JSON.stringify(inspectionsData));
+            initSession();
+            autoBackupToGoogleDrive();
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function importVehiclesExcel(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const sheet = workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet);
+                let added = 0;
+                json.forEach((row, idx) => {
+                    const callSign = String(row['Call sign.'] || row['Call Sign'] || 'RSI-' + idx);
+                    const exists = vehicles.some(v => v.call.toLowerCase() === callSign.toLowerCase());
+                    if(!exists) {
+                        vehicles.push({
+                            type: row['Vehicle Description / Type'] || 'Asset',
+                            call: callSign,
+                            plate: String(row['Plate No.'] || 'N/A'),
+                            make: String(row['Make / Brand'] || 'Brand'),
+                            meter: Number(row['KM (Meter)'] || 5000),
+                            inspExp: '2027-12-31',
+                            status: 'Roadworthy'
+                        });
+                        added++;
+                    }
+                });
+                saveData();
+                alert('Successfully imported ' + added + ' unique airport assets.');
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function importDriversExcel(event) {
+            const file = event.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const sheet = workbook.Sheets['employees'] || workbook.Sheets[workbook.SheetNames[0]];
+                const json = XLSX.utils.sheet_to_json(sheet);
+                let added = 0;
+                json.forEach((row, idx) => {
+                    const pos = String(row['Position'] || '').toLowerCase();
+                    const isDriver = pos.includes('driver') || pos.includes('operator') || pos.includes('bus') || pos.includes('coster');
+                    if(isDriver) {
+                        const driverId = String(row['ID'] || 'DRV-' + idx);
+                        const iqamaNo = String(row['Iqama'] || '2000000' + idx);
+                        const exists = drivers.some(d => String(d.driverId) === driverId || String(d.iqama) === iqamaNo);
+                        if(!exists) {
+                            drivers.push({
+                                driverId: driverId,
+                                name: String(row['Name'] || row['NAME IN ARABIC'] || 'Driver'),
+                                position: String(row['Position'] || 'Driver'),
+                                iqama: iqamaNo,
+                                phone: String(row['Mobile'] || '+966500000000'),
+                                iqamaExp: '2027-12-31',
+                                licExp: '2027-05-02'
+                            });
+                            if(!systemUsers.some(u => u.username === driverId)) {
+                                systemUsers.push({ username: driverId, role: 'Driver / Operator', camp: 'Red Sea Airport' });
+                            }
+                            added++;
+                        }
+                    }
+                });
+                saveData();
+                alert('Successfully imported ' + added + ' airport drivers (Username & Password = Employee ID).');
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function renderVehicles(filter = "") {
+            const tbody = document.getElementById('vehicles-table-body');
+            tbody.innerHTML = '';
+            vehicles.filter(v => v.type.toLowerCase().includes(filter.toLowerCase()) || v.call.toLowerCase().includes(filter.toLowerCase())).forEach((v) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 sm:p-4"><input type="checkbox" class="v-select rounded text-blue-600" value="${v.call}"></td>
+                        <td class="p-3 sm:p-4 font-bold text-blue-600">${v.call}</td>
+                        <td class="p-3 sm:p-4 font-semibold text-slate-800">${v.type}</td>
+                        <td class="p-3 sm:p-4 text-slate-600">${v.plate}</td>
+                        <td class="p-3 sm:p-4 text-slate-600">${v.meter || 0}</td>
+                        <td class="p-3 sm:p-4 font-semibold text-slate-700">${v.inspExp || '2027-12-31'}</td>
+                        <td class="p-3 sm:p-4 text-right">
+                            <button onclick="openVehicleModal('edit', '${v.call}')" class="text-blue-600 font-bold hover:underline text-xs mr-3">Edit</button>
+                            <button onclick="deleteVehicle('${v.call}')" class="text-rose-600 font-bold hover:underline text-xs">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            const hSelect = document.getElementById('h-asset');
+            if(hSelect) {
+                hSelect.innerHTML = '';
+                vehicles.forEach(v => hSelect.innerHTML += `<option value="${v.call}">${v.type} (${v.call})</option>`);
+                updateAssetCurrentMeter();
+            }
+            renderReportSelects();
+        }
+
+        function handleSmartDriverSearch(e) {
+            const query = e.target.value.trim().toLowerCase();
+            const resultsBox = document.getElementById('smart-search-results');
+            if(query.length === 0) {
+                resultsBox.classList.add('hidden');
+                return;
+            }
+            const matches = drivers.filter(d => d.name.toLowerCase().includes(query) || d.driverId.toLowerCase().includes(query));
+            if(matches.length === 0) {
+                resultsBox.innerHTML = '<div class="p-3 text-xs text-slate-400 text-center">No drivers found</div>';
+                resultsBox.classList.remove('hidden');
+                return;
+            }
+            let html = '';
+            matches.forEach(d => {
+                html += `<div onclick="selectDriver('${d.driverId}', '${d.name}')" class="p-3 hover:bg-blue-50 cursor-pointer text-xs font-semibold text-slate-700 flex justify-between"><span>${d.name}</span><span class="text-blue-600 font-bold">${d.driverId}</span></div>`;
+            });
+            resultsBox.innerHTML = html;
+            resultsBox.classList.remove('hidden');
+        }
+
+        function selectDriver(id, name) {
+            document.getElementById('h-driver-id').value = id;
+            document.getElementById('h-driver-name').value = name;
+            document.getElementById('h-smart-search').value = `${name} (${id})`;
+            document.getElementById('smart-search-results').classList.add('hidden');
+        }
+
+        function handleSmartFleetSearch(e) {
+            const query = e.target.value.trim().toLowerCase();
+            const resultsBox = document.getElementById('fleet-search-results');
+            if(query.length === 0) {
+                resultsBox.classList.add('hidden');
+                return;
+            }
+            const matches = vehicles.filter(v => v.call.toLowerCase().includes(query) || v.type.toLowerCase().includes(query));
+            if(matches.length === 0) {
+                resultsBox.innerHTML = '<div class="p-3 text-xs text-slate-400 text-center">No assets found</div>';
+                resultsBox.classList.remove('hidden');
+                return;
+            }
+            let html = '';
+            matches.forEach(v => {
+                html += `<div onclick="selectFleet('${v.call}', '${v.type}', ${v.meter || 0})" class="p-3 hover:bg-blue-50 cursor-pointer text-xs font-semibold text-slate-700 flex justify-between"><span>${v.type}</span><span class="text-blue-600 font-bold">${v.call}</span></div>`;
+            });
+            resultsBox.innerHTML = html;
+            resultsBox.classList.remove('hidden');
+        }
+
+        function selectFleet(call, type, meter) {
+            document.getElementById('insp-asset').value = call;
+            document.getElementById('insp-fleet-search').value = `${type} (${call})`;
+            document.getElementById('insp-meter').value = meter;
+            document.getElementById('fleet-search-results').classList.add('hidden');
+        }
+
+        function toggleSelectAllVehicles(master) { document.querySelectorAll('.v-select').forEach(chk => chk.checked = master.checked); }
+        function deleteSelectedVehicles() {
+            const selected = Array.from(document.querySelectorAll('.v-select:checked')).map(chk => chk.value);
+            if(selected.length === 0) { alert('Select at least one asset.'); return; }
+            if(confirm('Delete selected assets?')) { vehicles = vehicles.filter(v => !selected.includes(v.call)); saveData(); }
+        }
+        function filterVehicles() { renderVehicles(document.getElementById('search-vehicle').value); }
+        
+        function openVehicleModal(mode, call = null) {
+            document.getElementById('vehicle-modal').classList.remove('hidden');
+            if(mode === 'add') {
+                document.getElementById('edit-v-call-orig').value = "";
+                document.getElementById('modal-v-type').value = "";
+                document.getElementById('modal-v-call').value = "";
+                document.getElementById('modal-v-plate').value = "";
+                document.getElementById('modal-v-meter').value = "";
+                document.getElementById('modal-v-insp-exp').value = "";
+            } else {
+                const v = vehicles.find(item => item.call === call);
+                if(v) {
+                    document.getElementById('edit-v-call-orig').value = v.call;
+                    document.getElementById('modal-v-type').value = v.type;
+                    document.getElementById('modal-v-call').value = v.call;
+                    document.getElementById('modal-v-plate').value = v.plate;
+                    document.getElementById('modal-v-meter').value = v.meter || 0;
+                    document.getElementById('modal-v-insp-exp').value = v.inspExp || '';
+                }
+            }
+        }
+
+        function saveVehicleForm(e) {
+            e.preventDefault();
+            const origCall = document.getElementById('edit-v-call-orig').value;
+            const newData = {
+                type: document.getElementById('modal-v-type').value,
+                call: document.getElementById('modal-v-call').value,
+                plate: document.getElementById('modal-v-plate').value || 'N/A',
+                make: 'Asset',
+                meter: Number(document.getElementById('modal-v-meter').value),
+                inspExp: document.getElementById('modal-v-insp-exp').value || '2027-12-31',
+                status: 'Roadworthy'
+            };
+            if(origCall) {
+                const idx = vehicles.findIndex(v => v.call === origCall);
+                if(idx !== -1) vehicles[idx] = newData;
+            } else { vehicles.push(newData); }
+            saveData();
+            closeModal('vehicle-modal');
+        }
+        function deleteVehicle(call) { vehicles = vehicles.filter(v => v.call !== call); saveData(); }
+
+        function renderDrivers(filter = "") {
+            const tbody = document.getElementById('drivers-table-body');
+            tbody.innerHTML = '';
+            drivers.filter(d => d.name.toLowerCase().includes(filter.toLowerCase()) || d.driverId.toLowerCase().includes(filter.toLowerCase())).forEach((d) => {
+                const today = new Date();
+                const licWarn = (new Date(d.licExp) - today) / (1000*60*60*24) <= 30;
+                const iqamaWarn = (new Date(d.iqamaExp) - today) / (1000*60*60*24) <= 30;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 sm:p-4"><input type="checkbox" class="d-select rounded text-blue-600" value="${d.driverId}"></td>
+                        <td class="p-3 sm:p-4 font-bold text-blue-600">${d.driverId}</td>
+                        <td class="p-3 sm:p-4 font-semibold text-slate-800">${d.name}</td>
+                        <td class="p-3 sm:p-4 text-slate-600">${d.position}</td>
+                        <td class="p-3 sm:p-4 text-slate-600">${d.iqama}</td>
+                        <td class="p-3 sm:p-4 ${iqamaWarn ? 'text-rose-600 font-bold bg-rose-50' : 'text-slate-600'}">${d.iqamaExp || '2027-12-31'} ${iqamaWarn ? '⚠️' : ''}</td>
+                        <td class="p-3 sm:p-4 ${licWarn ? 'text-rose-600 font-bold bg-rose-50' : 'text-slate-600'}">${d.licExp || '2027-05-02'} ${licWarn ? '⚠️' : ''}</td>
+                        <td class="p-3 sm:p-4 text-right">
+                            <button onclick="openDriverModal('edit', '${d.driverId}')" class="text-blue-600 font-bold hover:underline text-xs mr-3">Edit</button>
+                            <button onclick="deleteDriver('${d.driverId}')" class="text-rose-600 font-bold hover:underline text-xs">Delete</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            renderReportSelects();
+        }
+
+        function toggleSelectAllDrivers(master) { document.querySelectorAll('.d-select').forEach(chk => chk.checked = master.checked); }
+        function deleteSelectedDrivers() {
+            const selected = Array.from(document.querySelectorAll('.d-select:checked')).map(chk => chk.value);
+            if(selected.length === 0) { alert('Select at least one driver.'); return; }
+            if(confirm('Delete selected drivers?')) { drivers = drivers.filter(d => !selected.includes(d.driverId)); saveData(); }
+        }
+        function filterDrivers() { renderDrivers(document.getElementById('search-driver').value); }
+        
+        function openDriverModal(mode, did = null) {
+            document.getElementById('driver-modal').classList.remove('hidden');
+            if(mode === 'add') {
+                document.getElementById('d-modal-title').innerText = "Add Driver";
+                document.getElementById('edit-d-id-orig').value = "";
+                document.getElementById('modal-d-id').value = "";
+                document.getElementById('modal-d-name').value = "";
+                document.getElementById('modal-d-pos').value = "";
+                document.getElementById('modal-d-iqama').value = "";
+                document.getElementById('modal-d-iqama-exp').value = "";
+                document.getElementById('modal-d-lic-exp').value = "";
+            } else {
+                document.getElementById('d-modal-title').innerText = "Edit Driver";
+                const d = drivers.find(item => item.driverId === did);
+                if(d) {
+                    document.getElementById('edit-d-id-orig').value = d.driverId;
+                    document.getElementById('modal-d-id').value = d.driverId;
+                    document.getElementById('modal-d-name').value = d.name;
+                    document.getElementById('modal-d-pos').value = d.position;
+                    document.getElementById('modal-d-iqama').value = d.iqama;
+                    document.getElementById('modal-d-iqama-exp').value = d.iqamaExp || '';
+                    document.getElementById('modal-d-lic-exp').value = d.licExp || '';
+                }
+            }
+        }
+
+        function saveDriverForm(e) {
+            e.preventDefault();
+            const origId = document.getElementById('edit-d-id-orig').value;
+            const newDriverId = document.getElementById('modal-d-id').value.trim();
+            const newData = {
+                driverId: newDriverId,
+                name: document.getElementById('modal-d-name').value,
+                position: document.getElementById('modal-d-pos').value,
+                iqama: document.getElementById('modal-d-iqama').value,
+                phone: '+966500000000',
+                iqamaExp: document.getElementById('modal-d-iqama-exp').value || '2027-12-31',
+                licExp: document.getElementById('modal-d-lic-exp').value || '2027-05-02'
+            };
+            if(origId) {
+                const idx = drivers.findIndex(d => d.driverId === origId);
+                if(idx !== -1) drivers[idx] = newData;
+            } else {
+                drivers.push(newData);
+            }
+            if(!systemUsers.some(u => u.username === newDriverId)) {
+                systemUsers.push({ username: newDriverId, role: 'Driver / Operator', camp: 'Red Sea Airport' });
+            }
+            saveData();
+            closeModal('driver-modal');
+        }
+        function deleteDriver(did) { drivers = drivers.filter(d => d.driverId !== did); saveData(); }
+
+        function updateAssetCurrentMeter() {
+            const assetCall = document.getElementById('h-asset').value;
+            const v = vehicles.find(item => item.call === assetCall);
+            if(v) { 
+                const sysMeter = v.meter || 0;
+                document.getElementById('h-system-meter').value = sysMeter;
+                const type = document.getElementById('h-type').value;
+                if(type === 'Check-Out') {
+                    document.getElementById('h-actual-meter').value = sysMeter;
+                }
+            }
+        }
+
+        function onHandoverTypeChange() {
+            updateAssetCurrentMeter();
+            checkMeterDifference();
+        }
+
+        function checkMeterDifference() {
+            const sysMeter = Number(document.getElementById('h-system-meter').value);
+            const actMeter = Number(document.getElementById('h-actual-meter').value);
+            const type = document.getElementById('h-type').value;
+            const warningBox = document.getElementById('meter-warning-box');
+            const warningText = document.getElementById('meter-warning-text');
+            const reasonInput = document.getElementById('h-meter-reason');
+            const reasonContainer = document.getElementById('reason-container');
+
+            if(type === 'Check-Out') {
+                if(actMeter !== sysMeter) {
+                    warningText.innerText = "⚠️ Warning: Check-Out meter must match current system meter exactly!";
+                    warningBox.classList.remove('hidden');
+                    reasonContainer.style.display = 'block';
+                    reasonInput.required = true;
+                } else {
+                    warningBox.classList.add('hidden');
+                    reasonInput.required = false;
+                }
+            } else {
+                if(actMeter <= sysMeter) {
+                    warningText.innerText = "⚠️ Warning: Check-In meter reading must be greater than current meter!";
+                    warningBox.classList.add('hidden');
+                    reasonContainer.style.display = 'none';
+                    reasonInput.required = false;
+                } else {
+                    warningBox.classList.add('hidden');
+                }
+            }
+        }
+
+        function toggleLocationFields() {
+            const loc = document.getElementById('h-location').value;
+            document.getElementById('outside-fields').classList.toggle('hidden', loc !== 'Outside Airport');
+        }
+
+        function saveHandover(e) {
+            e.preventDefault();
+            const driverId = document.getElementById('h-driver-id').value;
+            const driverName = document.getElementById('h-driver-name').value;
+            const assetCall = document.getElementById('h-asset').value;
+            const actMeter = Number(document.getElementById('h-actual-meter').value);
+            const transactionType = document.getElementById('h-type').value;
+            const timestamp = document.getElementById('h-timestamp').value;
+            const sysMeter = Number(document.getElementById('h-system-meter').value);
+            const v = vehicles.find(item => item.call === assetCall);
+
+            if(!driverId) {
+                alert('Please search and select a driver first!');
+                return;
+            }
+
+            if(transactionType === 'Check-Out') {
+                let activeHolding = handovers.slice().reverse().find(h => h.driverId === driverId && h.type === 'Check-Out');
+                if(activeHolding) {
+                    let returned = handovers.some(h => h.asset === activeHolding.asset && h.driverId === driverId && h.type === 'Check-In' && new Date(h.timestamp) > new Date(activeHolding.timestamp));
+                    if(!returned) {
+                        if(currentUser.role === 'manager' || currentUser.role === 'inspector') {
+                            if(!confirm(`⚠️ Override Notice: Driver ${driverName} already holds asset (${activeHolding.asset}). As Manager/Inspector, do you want to force checkout?`)) {
+                                return;
+                            }
+                        } else {
+                            alert(`⚠️ Warning: Driver ${driverName} is already holding asset code (${activeHolding.asset}). It must be returned first, or overridden by a Fleet Manager / Safety Inspector.`);
+                            return;
+                        }
+                    }
+                }
+
+                if(actMeter !== sysMeter) {
+                    const reason = document.getElementById('h-meter-reason').value;
+                    if(!reason) {
+                        alert('Please enter reason for meter difference.');
+                        return;
+                    }
+                }
+            } else {
+                if(actMeter <= sysMeter) {
+                    alert('⚠️ Error: Check-In meter reading must be greater than current meter!');
+                    return;
+                }
+            }
+            
+            let checkOutMeter = actMeter;
+            let checkInMeter = 0;
+            let consumedKm = 0;
+            let checkOutTime = timestamp;
+            let checkInTime = 'N/A';
+
+            if(transactionType === 'Check-In') {
+                let lastCheckout = handovers.slice().reverse().find(h => h.asset === assetCall && h.type === 'Check-Out');
+                checkOutMeter = lastCheckout ? lastCheckout.meter : (v ? v.meter : actMeter);
+                checkInMeter = actMeter;
+                checkOutTime = lastCheckout ? lastCheckout.timestamp : 'N/A';
+                checkInTime = timestamp;
+                consumedKm = Math.max(0, checkInMeter - checkOutMeter);
+            } else {
+                checkOutMeter = actMeter;
+                checkInMeter = 0;
+                checkOutTime = timestamp;
+                checkInTime = 'Pending Return';
+                consumedKm = 0;
+            }
+
+            if(v) { v.meter = actMeter; }
+
+            handovers.push({
+                id: Date.now(),
+                asset: assetCall,
+                driverName: driverName,
+                driverId: driverId,
+                type: transactionType,
+                checkOutMeter: checkOutMeter,
+                checkInMeter: checkInMeter,
+                consumedKm: consumedKm,
+                checkOutTime: checkOutTime,
+                checkInTime: checkInTime,
+                timestamp: timestamp,
+                location: document.getElementById('h-location').value,
+                destination: document.getElementById('h-destination').value || 'N/A',
+                reason: document.getElementById('h-reason').value || 'N/A',
+                date: new Date().toLocaleString('en-GB')
+            });
+
+            saveData();
+            alert(`Handover recorded successfully!\nType: ${transactionType}\nMeter: ${actMeter}\nConsumed KM: ${consumedKm}`);
+        }
+
+        function cancelHandover(id) {
+            if(currentUser.role !== 'manager') {
+                alert('⚠️ Access Denied: Only Fleet Manager can cancel handover records!');
+                return;
+            }
+            if(confirm('Are you sure you want to cancel and delete this handover record?')) {
+                handovers = handovers.filter(h => h.id !== id);
+                saveData();
+            }
+        }
+
+        function cancelInspection(assetCall) {
+            if(currentUser.role !== 'manager') {
+                alert('⚠️ Access Denied: Only Fleet Manager can cancel inspection records!');
+                return;
+            }
+            if(confirm(`Are you sure you want to cancel the inspection report for asset ${assetCall}?`)) {
+                delete inspectionsData[assetCall];
+                saveData();
+            }
+        }
+
+        function renderBottomHandovers() {
+            const tbody = document.getElementById('bottom-handovers-tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            if(handovers.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-slate-400">No handover records found.</td></tr>';
+                return;
+            }
+            handovers.slice().reverse().forEach(h => {
+                let cancelBtn = (currentUser && currentUser.role === 'manager') ? 
+                    `<button onclick="cancelHandover(${h.id})" class="bg-rose-50 text-rose-600 hover:bg-rose-100 px-2.5 py-1 rounded-lg font-bold text-[11px] border border-rose-200">Cancel</button>` : 
+                    `<span class="text-slate-400 text-[10px]">Manager Only</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-bold text-blue-600">${h.asset}</td>
+                        <td class="p-3">${h.driverName} (${h.driverId})</td>
+                        <td class="p-3 font-semibold">${h.type}</td>
+                        <td class="p-3"><b>Out:</b> ${h.checkOutMeter}<br><b>In:</b> ${h.checkInMeter}</td>
+                        <td class="p-3 font-bold text-emerald-600">${h.consumedKm} KM</td>
+                        <td class="p-3">${h.location}</td>
+                        <td class="p-3 text-right">${cancelBtn}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderBottomInspections() {
+            const tbody = document.getElementById('bottom-inspections-tbody');
+            if(!tbody) return;
+            tbody.innerHTML = '';
+            const keys = Object.keys(inspectionsData);
+            if(keys.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-400">No inspection records found.</td></tr>';
+                return;
+            }
+            keys.forEach(call => {
+                let insp = inspectionsData[call];
+                let cancelBtn = (currentUser && currentUser.role === 'manager') ? 
+                    `<button onclick="cancelInspection('${call}')" class="bg-rose-50 text-rose-600 hover:bg-rose-100 px-2.5 py-1 rounded-lg font-bold text-[11px] border border-rose-200">Cancel</button>` : 
+                    `<span class="text-slate-400 text-[10px]">Manager Only</span>`;
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50">
+                        <td class="p-3 font-bold text-blue-600">${call}</td>
+                        <td class="p-3">${insp.inspector}</td>
+                        <td class="p-3">${insp.meter}</td>
+                        <td class="p-3 text-slate-500">${insp.dateTime}</td>
+                        <td class="p-3 text-right">${cancelBtn}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function renderUsers() {
+            const tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = '';
+            systemUsers.forEach((u, idx) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-3 sm:p-4 font-bold text-blue-600">${u.username}</td>
+                        <td class="p-3 sm:p-4 font-mono text-xs text-slate-500">Password = Employee ID</td>
+                        <td class="p-3 sm:p-4"><span class="px-3 py-1 rounded-xl text-xs bg-blue-50 text-blue-700 font-bold border border-blue-100">${u.role}</span></td>
+                        <td class="p-3 sm:p-4 text-right"><button onclick="deleteUser(${idx})" class="text-rose-600 font-bold hover:underline text-xs">Delete</button></td>
+                    </tr>
+                `;
+            });
+            document.getElementById('dash-total-u').innerText = systemUsers.length;
+        }
+        function openUserModal() { document.getElementById('user-modal').classList.remove('hidden'); }
+        function saveUserForm(e) {
+            e.preventDefault();
+            systemUsers.push({ username: document.getElementById('modal-u-name').value, role: document.getElementById('modal-u-role').value, camp: 'Red Sea Airport' });
+            saveData();
+            closeModal('user-modal');
+        }
+        function deleteUser(idx) { systemUsers.splice(idx, 1); saveData(); }
+
+        function renderInspectionFormItems() {
+            const tbody = document.getElementById('inspection-items-tbody');
+            const mobileContainer = document.getElementById('inspection-mobile-container');
+            if(!tbody || !mobileContainer) return;
+            
+            tbody.innerHTML = '';
+            mobileContainer.innerHTML = '';
+
+            inspectionItemsList.forEach((item, idx) => {
+                // Desktop Table Row
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition">
+                        <td class="p-4 font-semibold text-slate-800">${item}</td>
+                        <td class="p-4 text-center">
+                            <select class="bg-slate-50 border border-slate-200 rounded-xl p-2 text-xs font-bold outline-none item-status" data-idx="${idx}">
+                                <option value="Good" class="text-emerald-600">✔ Good</option>
+                                <option value="Bad" class="text-rose-600">❌ Bad</option>
+                            </select>
+                        </td>
+                        <td class="p-4"><input type="text" placeholder="Add remarks..." class="w-full bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-xs outline-none item-remark" data-idx="${idx}"></td>
+                        <td class="p-4"><input type="file" accept="image/*" capture="environment" class="text-[10px] bg-slate-50 border border-slate-200 rounded-xl p-1.5 w-full item-photo" data-idx="${idx}" onchange="compressAndStorePhoto(this, ${idx})"></td>
+                    </tr>
+                `;
+
+                // Mobile Card Layout
+                mobileContainer.innerHTML += `
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3">
+                        <p class="text-xs font-bold text-slate-900">${idx + 1}. ${item}</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Status</label>
+                                <select class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs font-bold outline-none item-status" data-idx="${idx}">
+                                    <option value="Good" class="text-emerald-600">✔ Good</option>
+                                    <option value="Bad" class="text-rose-600">❌ Bad</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Camera Capture</label>
+                                <input type="file" accept="image/*" capture="environment" class="text-[10px] bg-white border border-slate-200 rounded-xl p-1 w-full item-photo" data-idx="${idx}" onchange="compressAndStorePhoto(this, ${idx})">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Remarks</label>
+                            <input type="text" placeholder="Add remarks..." class="w-full bg-white border border-slate-200 rounded-xl p-2 text-xs outline-none item-remark" data-idx="${idx}">
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        let tempInspectionPhotos = {};
+        function compressAndStorePhoto(input, idx) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const MAX_WIDTH = 500;
+                        const MAX_HEIGHT = 500;
+                        let width = img.width;
+                        let height = img.height;
+                        if (width > height) {
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                        } else {
+                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                        }
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        tempInspectionPhotos[idx] = canvas.toDataURL('image/jpeg', 0.5);
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function saveInspection(e) {
+            e.preventDefault();
+            const asset = document.getElementById('insp-asset').value;
+            if(!asset) { alert('Please select an asset first!'); return; }
+            let reportData = {
+                inspector: document.getElementById('insp-name').value,
+                meter: document.getElementById('insp-meter').value,
+                dateTime: new Date().toLocaleString('en-GB'),
+                items: []
+            };
+            
+            const statuses = document.querySelectorAll('.item-status');
+            const remarks = document.querySelectorAll('.item-remark');
+            
+            inspectionItemsList.forEach((item, idx) => {
+                let statusVal = 'Good';
+                let remarkVal = 'No remarks';
+                
+                statuses.forEach(sel => {
+                    if(Number(sel.getAttribute('data-idx')) === idx && sel.offsetParent !== null) {
+                        statusVal = sel.value;
+                    }
+                });
+                remarks.forEach(rem => {
+                    if(Number(rem.getAttribute('data-idx')) === idx && rem.offsetParent !== null) {
+                        remarkVal = rem.value || 'No remarks';
+                    }
+                });
+
+                reportData.items.push({
+                    name: item,
+                    status: statusVal,
+                    remark: remarkVal,
+                    photo: tempInspectionPhotos[idx] || null
+                });
+            });
+
+            inspectionsData[asset] = reportData;
+            saveData();
+            alert('Inspection report saved successfully with camera evidence and auto timestamp!');
+        }
+
+        function checkDocumentAlerts() {
+            let count = 0;
+            let box = document.getElementById('maintenance-alerts-box');
+            box.innerHTML = '';
+            const today = new Date();
+
+            drivers.forEach(d => {
+                const licExp = new Date(d.licExp);
+                const iqamaExp = new Date(d.iqamaExp);
+                if((licExp - today)/(1000*60*60*24) <= 30) {
+                    count++;
+                    box.innerHTML += `<div class="p-3 bg-rose-50 border-l-4 border-rose-600 text-rose-800 rounded-xl">⚠️ Driver <b>${d.name}</b>'s License is expiring soon (${d.licExp}).</div>`;
+                }
+                if((iqamaExp - today)/(1000*60*60*24) <= 30) {
+                    count++;
+                    box.innerHTML += `<div class="p-3 bg-rose-50 border-l-4 border-rose-600 text-rose-800 rounded-xl">⚠️ Driver <b>${d.name}</b>'s Iqama is expiring soon (${d.iqamaExp}).</div>`;
+                }
+            });
+
+            vehicles.forEach(v => {
+                const inspExp = new Date(v.inspExp);
+                if((inspExp - today)/(1000*60*60*24) <= 30) {
+                    count++;
+                    box.innerHTML += `<div class="p-3 bg-amber-50 border-l-4 border-amber-500 text-amber-800 rounded-xl">⚠️ Asset <b>${v.call}</b> Periodic Inspection is expiring soon (${v.inspExp}).</div>`;
+                }
+            });
+
+            document.getElementById('dash-maint-alerts').innerText = count;
+            document.getElementById('dash-total-v').innerText = vehicles.length;
+            document.getElementById('dash-total-d').innerText = drivers.length;
+            if(count === 0) box.innerHTML = `<p class="text-emerald-600 font-medium">✅ All airport driver documents and periodic asset inspections are valid.</p>`;
+        }
+
+        function renderReportSelects() {
+            updateReportTargets();
+        }
+
+        function updateReportTargets() {
+            const filterType = document.getElementById('rep-asset-filter').value;
+            const targetSel = document.getElementById('rep-target-select');
+            if(!targetSel) return;
+
+            targetSel.innerHTML = '<option value="all">-- All Filtered Assets --</option>';
+            
+            vehicles.forEach(v => {
+                const isTruckOrVan = v.type.toLowerCase().includes('truck') || v.type.toLowerCase().includes('pickup') || v.type.toLowerCase().includes('van') || v.type.toLowerCase().includes('bus');
+                const isEquipment = !isTruckOrVan;
+
+                if (filterType === 'all' || (filterType === 'vehicles' && isTruckOrVan) || (filterType === 'equipment' && isEquipment)) {
+                    targetSel.innerHTML += `<option value="asset_${v.call}">[${isTruckOrVan ? 'Vehicle' : 'Equipment'}] ${v.type} (${v.call})</option>`;
+                }
+            });
+
+            if (filterType === 'all') {
+                drivers.forEach(d => {
+                    targetSel.innerHTML += `<option value="driver_${d.driverId}">Driver: ${d.name} (${d.driverId})</option>`;
+                });
+            }
+        }
+
+        function generateCustomReport() {
+            const category = document.getElementById('rep-category').value;
+            const filterType = document.getElementById('rep-asset-filter').value;
+            const targetVal = document.getElementById('rep-target-select').value;
+            const container = document.getElementById('individual-a4-container');
+            container.innerHTML = '';
+
+            const enovaLogoHTML = `
+                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; margin-bottom: 16px;">
+                    <div style="display: flex; align-items: center;">
+                        <svg viewBox="0 0 320 85" style="height: 38px; width: auto;" xmlns="http://www.w3.org/2000/svg">
+                            <g>
+                                <circle cx="42.5" cy="42.5" r="42.5" fill="#ed1c24"/>
+                                <path d="M22 61V35c0-11.3 9.2-20.5 20.5-20.5S63 23.7 63 35v26" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+                                <path d="M35 61V44c0-4.1 3.4-7.5 7.5-7.5s7.5 3.4 7.5 7.5v17" fill="none" stroke="#ed1c24" stroke-width="4" stroke-linecap="round"/>
+                            </g>
+                            <text x="95" y="58" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="44" fill="#2b3990" letter-spacing="-1">ENOVA</text>
+                            <g transform="translate(165, 63)">
+                                <text x="0" y="14" font-family="Inter, Arial, sans-serif" font-style="italic" font-weight="500" font-size="16" fill="#2b3990">by</text>
+                                <g transform="translate(26, 2)">
+                                    <circle cx="11" cy="9" r="11" fill="none" stroke="#ed1c24" stroke-width="4"/>
+                                    <circle cx="11" cy="9" r="3.5" fill="#ed1c24"/>
+                                </g>
+                                <text x="56" y="14" font-family="Inter, Arial, sans-serif" font-weight="700" font-size="16" fill="#ed1c24" letter-spacing="1">VEOLIA</text>
+                            </g>
+                        </svg>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 10px; font-weight: bold; color: #64748b;">Red Sea International Airport Fleet</div>
+                    </div>
+                </div>
+            `;
+
+            let targetVehicles = vehicles.filter(v => {
+                const isTruckOrVan = v.type.toLowerCase().includes('truck') || v.type.toLowerCase().includes('pickup') || v.type.toLowerCase().includes('van') || v.type.toLowerCase().includes('bus');
+                const isEquipment = !isTruckOrVan;
+                if (filterType === 'vehicles') return isTruckOrVan;
+                if (filterType === 'equipment') return isEquipment;
+                return true;
+            });
+
+            if (targetVal.startsWith('asset_')) {
+                const call = targetVal.replace('asset_', '');
+                targetVehicles = targetVehicles.filter(v => v.call === call);
+            }
+
+            if (category === 'inspection' || category === 'both') {
+                targetVehicles.forEach(v => {
+                    let insp = inspectionsData[v.call] || { inspector: 'Inspector', meter: v.meter || 0, dateTime: new Date().toLocaleString('en-GB'), items: inspectionItemsList.map(name => ({ name, status: 'Good', remark: 'Passed', photo: null })) };
+                    let itemsHtml = '';
+                    insp.items.forEach(it => {
+                        let thumb = it.photo ? `<img src="${it.photo}" style="width:32px; height:32px; object-fit:cover; border-radius:4px; border:1px solid #cbd5e1;">` : `<span style="color:#94a3b8; font-size:10px;">No Photo</span>`;
+                        itemsHtml += `
+                            <tr>
+                                <td style="padding:6px; border:1px solid #e2e8f0; font-size:11px;">${it.name}</td>
+                                <td style="padding:6px; border:1px solid #e2e8f0; text-align:center; font-weight:bold; font-size:11px; color:${it.status === 'Good' ? '#047857' : '#be123c'};">${it.status}</td>
+                                <td style="padding:6px; border:1px solid #e2e8f0; font-size:11px;">${it.remark}</td>
+                                <td style="padding:6px; border:1px solid #e2e8f0; text-align:center;">${thumb}</td>
+                            </tr>
+                        `;
+                    });
+                    container.innerHTML += `
+                        <div style="background:white; padding:24px; border-radius:16px; border:1px solid #e2e8f0;" class="page-break mb-8">
+                            ${enovaLogoHTML}
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:8px; margin-bottom:12px;">
+                                <div>
+                                    <h3 style="font-size:13px; font-weight:bold; color:#0f172a;">DAILY VEHICLE / EQUIPMENT INSPECTION CHECKLIST</h3>
+                                    <p style="font-size:11px; color:#475569;">Vehicle No / Call Sign: <b>${v.call}</b> | Description: ${v.type}</p>
+                                </div>
+                                <div style="text-align:right; font-size:11px; font-weight:bold; color:#475569;">Timestamp: ${insp.dateTime}</div>
+                            </div>
+                            <table style="width:100%; border-collapse:collapse; text-align:left;">
+                                <thead>
+                                    <tr style="background:#0f172a; color:white; font-size:11px;">
+                                        <th style="padding:6px; border:1px solid #e2e8f0;">Checks</th>
+                                        <th style="padding:6px; border:1px solid #e2e8f0; text-align:center; width:90px;">Status</th>
+                                        <th style="padding:6px; border:1px solid #e2e8f0; width:180px;">Remarks</th>
+                                        <th style="padding:6px; border:1px solid #e2e8f0; text-align:center; width:90px;">Photo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${itemsHtml}</tbody>
+                            </table>
+                            <div style="margin-top:24px; padding-top:12px; border-top:1px solid #e2e8f0; display:flex; justify-content:space-between; font-size:11px;">
+                                <div><b>Checked By (Driver):</b> ${insp.inspector}<br><br>Signature: ______________________</div>
+                                <div><b>Inspected By (Safety):</b> Authorized Inspector<br><br>Signature: ______________________</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            if (category === 'handover' || category === 'both') {
+                let targetHandovers = handovers;
+                if (targetVal.startsWith('asset_')) {
+                    const call = targetVal.replace('asset_', '');
+                    targetHandovers = handovers.filter(h => h.asset === call);
+                } else if (targetVal.startsWith('driver_')) {
+                    const did = targetVal.replace('driver_', '');
+                    let drv = drivers.find(d => d.driverId === did);
+                    if(drv) targetHandovers = handovers.filter(h => h.driverName === drv.name);
+                }
+
+                let rowsHtml = '';
+                targetHandovers.forEach(h => {
+                    rowsHtml += `
+                        <tr>
+                            <td style="padding:6px; border:1px solid #e2e8f0; font-weight:bold; color:#2563eb;">${h.asset}</td>
+                            <td style="padding:6px; border:1px solid #e2e8f0;">${h.driverName} (${h.driverId})</td>
+                            <td style="padding:6px; border:1px solid #e2e8f0; font-weight:600;">${h.type}</td>
+                            <td style="padding:6px; border:1px solid #e2e8f0;"><b>Out:</b> ${h.checkOutMeter}<br><b>In:</b> ${h.checkInMeter}</td>
+                            <td style="padding:6px; border:1px solid #e2e8f0; font-weight:bold; color:#059669;">${h.consumedKm} KM</td>
+                            <td style="padding:6px; border:1px solid #e2e8f0; font-size:10px;"><b>Out:</b> ${h.checkOutTime}<br><b>In:</b> ${h.checkInTime}</td>
+                            <td style="padding:6px; border:1px solid #e2e8f0; font-size:10px;">${h.location}</td>
+                        </tr>
+                    `;
+                });
+
+                container.innerHTML += `
+                    <div style="background:white; padding:24px; border-radius:16px; border:1px solid #e2e8f0;" class="page-break mb-8">
+                        ${enovaLogoHTML}
+                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:12px; margin-bottom:16px;">
+                            <div>
+                                <h3 style="font-size:14px; font-weight:bold; color:#0f172a;">RED SEA INTERNATIONAL AIRPORT - VEHICLE HANDOVER LOG REPORT</h3>
+                                <p style="font-size:11px; color:#475569;">Check-In / Check-Out Timestamps & Distance Consumption</p>
+                            </div>
+                            <div style="text-align:right; font-size:11px; font-weight:bold; color:#475569;">Date: ${new Date().toLocaleDateString('en-GB')}</div>
+                        </div>
+                        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:11px;">
+                            <thead>
+                                <tr style="background:#0f172a; color:white;">
+                                    <th style="padding:6px; border:1px solid #e2e8f0;">Asset</th>
+                                    <th style="padding:6px; border:1px solid #e2e8f0;">Driver</th>
+                                    <th style="padding:6px; border:1px solid #e2e8f0;">Type</th>
+                                    <th style="padding:6px; border:1px solid #e2e8f0;">Meters (Out/In)</th>
+                                    <th style="padding:6px; border:1px solid #e2e8f0;">Distance</th>
+                                    <th style="padding:6px; border:1px solid #e2e8f0;">Timestamps (Out/In)</th>
+                                    <th style="padding:6px; border:1px solid #e2e8f0;">Location</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rowsHtml || '<tr><td colspan="7" style="padding:16px; text-align:center; color:#94a3b8;">No handover records found.</td></tr>'}</tbody>
+                        </table>
+                    </div>
+                `;
+            }
+
+            window.print();
+        }
+
+        initSession();
+    </script>
+</body>
+</html>
